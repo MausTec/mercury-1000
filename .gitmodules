@@ -1,0 +1,3 @@
+[submodule "lib/m1k-hal-dist"]
+	path = lib/m1k-hal-dist
+	url = https://github.com/MausTec/m1k-hal-dist
