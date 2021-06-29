@@ -10,7 +10,7 @@ namespace UI {
     void Page::render(void) {
         if (config->render_cb != nullptr) {
             auto display = m1k_hal_get_display_ptr();
-            // make this return a bool or dirty flag.
+            display->clearBuffer();
             config->render_cb(display, this);
             display->sendBuffer();
         }
