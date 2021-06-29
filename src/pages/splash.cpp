@@ -1,5 +1,5 @@
 #include "ui.hpp"
-
+#include "version.h"
 #include "images/mt_8bit.h"
 
 using namespace UI;
@@ -22,7 +22,7 @@ static void render(m1k_hal_display_t* display, Page* page) {
         graphics_draw_image(width / 2, 3, &MT_8BIT);
     } else {
         const char *product_name = "MERCURY 1000";
-        const char *product_rev = "v0.1.0+abcdef00";
+        const char *product_rev = VERSION;
         auto left = m1k_hal_get_display_left();
         auto dwidth = m1k_hal_get_display_width();
 
