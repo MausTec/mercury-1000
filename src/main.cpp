@@ -15,7 +15,7 @@ void setup() {
   Serial.print("m1k-hal version: ");
   Serial.println(m1k_hal_get_version());
 
-  ui_open_page(&Pages::Home);
+  ui_open_page(&Pages::Splash);
 }
 
 void loop() {

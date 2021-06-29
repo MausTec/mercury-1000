@@ -27,11 +27,11 @@ static graphics_image_t *MILKER_ICONS[4] = {
 
 static void render(m1k_hal_display_t* display, Page* page) {
     auto milker_icon = MILKER_ICONS[state.icon_step];
-    auto width = m1k_hal_get_display_width() - MILKER_ICONS[0]->width;
+    auto width = m1k_hal_get_display_width() - milker_icon->width - MT_8BIT.width;
 
     display->setDrawColor(1);
-    graphics_draw_image(m1k_hal_get_display_width() - MT_8BIT.width, 3, &MT_8BIT);    
     graphics_draw_image(0, 0, milker_icon);
+    graphics_draw_image(milker_icon->width + (width / 2), 3, &MT_8BIT);    
 }
 
 static void loop(Page* page) {
