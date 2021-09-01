@@ -12,6 +12,7 @@ using namespace UI;
 static const char* TAG = "PAGE:HOME";
 
 #define UPDATE_PERIOD_MS (1000 / 30)
+#define DOUBLE_CLICK_DELAY_MS 500
 
 enum current_control_item {
     HOME_CONTROL_ITEM_SPEED,
@@ -215,8 +216,23 @@ static void set_speed(int speed) {
 
 static void encoder_change(int difference, Page* page) {
     switch (state.ctrl_item) {
-        case HOME_CONTROL_ITEM_PRESSURE:
-            break;
+        case HOME_CONTROL_ITEM_PRESSURE: 
+        {
+            auto direction = m1k_hal_air_get_direction();
+            if (difference < 0) {
+                if (direction == M1K_HAL_AIR_IN || direction == M1K_HAL_AIR_CHAOS) {
+                    m1k_hal_air_stop();
+                } else {
+                    m1k_hal_air_out();
+                }
+            } else {
+                if (direction == M1K_HAL_AIR_OUT || direction == M1K_HAL_AIR_CHAOS) {
+                    m1k_hal_air_stop();
+                } else {
+                    m1k_hal_air_in();
+                }
+            }
+        } break;
         case HOME_CONTROL_ITEM_SPEED:
         default:
             state.speed += difference;
@@ -224,30 +240,52 @@ static void encoder_change(int difference, Page* page) {
             if (state.speed > _speed_count) state.speed = _speed_count;
 
             int speed = ceil(pow(state.speed * 0.6, 2));
-            set_speed(speed);        
+            set_speed(speed);
             break;
     }
     
     page->render();
 }
 
-static void on_button(m1k_hal_button_t button, bool is_hold, Page *page) {
+static void on_button(m1k_hal_button_t button, m1k_hal_button_evt_t evt, Page *page) {
     long ms = esp_timer_get_time() / 1000L;
 
-    if (ms - state.last_click_ms < 400) {
-        state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
-        state.speed = 0;
-        set_speed(0);
-    } else {
-        state.last_click_ms = ms;
+    if (button == M1K_HAL_BUTTON_MENU && evt == M1K_HAL_BUTTON_EVT_PRESS) {
+        if (ms - state.last_click_ms < DOUBLE_CLICK_DELAY_MS) {
+            state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
+            state.speed = 0;
+            set_speed(0);
+        } else {
+            state.last_click_ms = ms;
 
-        switch (state.ctrl_item) {
-            case HOME_CONTROL_ITEM_PRESSURE:
-                state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
-                break;
-            case HOME_CONTROL_ITEM_SPEED:
-            default:
-                state.ctrl_item = HOME_CONTROL_ITEM_PRESSURE;
+            switch (state.ctrl_item) {
+                case HOME_CONTROL_ITEM_PRESSURE:
+                    state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
+                    break;
+                case HOME_CONTROL_ITEM_SPEED:
+                default:
+                    state.ctrl_item = HOME_CONTROL_ITEM_PRESSURE;
+            }
+        }
+    }
+
+    if (button == M1K_HAL_BUTTON_AIRIN) {
+        if (evt == M1K_HAL_BUTTON_EVT_DOWN) {
+            m1k_hal_air_in();
+        }
+
+        if (evt == M1K_HAL_BUTTON_EVT_UP) {
+            m1k_hal_air_stop();
+        }
+    }
+
+    if (button == M1K_HAL_BUTTON_AIROUT) {
+        if (evt == M1K_HAL_BUTTON_EVT_DOWN) {
+            m1k_hal_air_out();
+        }
+
+        if (evt == M1K_HAL_BUTTON_EVT_UP) {
+            m1k_hal_air_stop();
         }
     }
 

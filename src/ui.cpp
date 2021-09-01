@@ -8,8 +8,7 @@ static UI::Page* current_page = nullptr;
 // static UI::Menu *current_menu = nullptr;
 
 void ui_init(void) {
-    M1K_HAL_ERRCHK(m1k_hal_register_button_hold(M1K_HAL_BUTTON_MENU, ui_handle_click));
-    M1K_HAL_ERRCHK(m1k_hal_register_button_press(M1K_HAL_BUTTON_MENU, ui_handle_click));
+    M1K_HAL_ERRCHK(m1k_hal_register_button_cb(M1K_HAL_BUTTON_ANY, ui_handle_click));
     M1K_HAL_ERRCHK(m1k_hal_register_encoder_change(ui_handle_encoder));
 }
 
@@ -28,9 +27,9 @@ void ui_tick(void) {
     }
 }
 
-void ui_handle_click(m1k_hal_button_t button, bool is_hold) {
+void ui_handle_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt) {
     if (current_page != nullptr) {
-        current_page->on_click(button, is_hold);
+        current_page->on_click(button, evt);
     }
 }
 

@@ -24,8 +24,8 @@ namespace UI {
         if (config->exit_cb != nullptr) config->exit_cb(this);
     }
 
-    void Page::on_click(m1k_hal_button_t button, bool is_hold) {
-        if (config->button_cb != nullptr) config->button_cb(button, is_hold, this);
+    void Page::on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt) {
+        if (config->button_cb != nullptr) config->button_cb(button, evt, this);
     }
 
     void Page::on_encoder(int difference) {

@@ -4,16 +4,18 @@
 #include "ui.hpp"
 #include "pages.hpp"
 #include "pressure_manager.hpp"
+#include "tscode_manager.h"
 #include "esp_task_wdt.h"
 
 TaskHandle_t PressureMgrTask;
 void pressure_mgr_task(void *param);
 
 void setup() {
-  Serial.begin(256000);
+  Serial.begin(115200);
 
   m1k_hal_init();
   ui_init();
+  tscode_manager_init();
 
   xTaskCreatePinnedToCore(
     pressure_mgr_task,
@@ -36,6 +38,7 @@ void setup() {
 void loop() {
   m1k_hal_tick();
   ui_tick();
+  tscode_manager_tick();
 }
 
 void pressure_mgr_task(void *param) {

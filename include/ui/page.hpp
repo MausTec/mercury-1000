@@ -9,7 +9,7 @@ namespace UI {
     typedef void (*page_event_cb)(Page *p);
     typedef void (*page_render_cb)(m1k_hal_display_t *display, Page *p);
     typedef void (*page_encoder_cb)(int difference, Page *p);
-    typedef void (*page_button_cb)(m1k_hal_button_t button, bool is_hold, Page *p);
+    typedef void (*page_button_cb)(m1k_hal_button_t button, m1k_hal_button_evt_t evt, Page *p);
 
     struct page_config {
         page_event_cb enter_cb;
@@ -34,7 +34,7 @@ namespace UI {
             void render(void);
             void loop(void);
             void exit(void);
-            void on_click(m1k_hal_button_t button, bool is_hold);
+            void on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
             void on_encoder(int);
 
         private:

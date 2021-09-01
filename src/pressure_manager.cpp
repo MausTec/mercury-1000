@@ -68,7 +68,7 @@ void pressure_manager_tick(void) {
         max_peak.clear();
     }
 
-    if (false) {
+    if (true) {
         Serial.printf("%.2f,%.1f,%.1f,%.1f\n",
             pressure,
             pressure_manager_get_frequency(),
