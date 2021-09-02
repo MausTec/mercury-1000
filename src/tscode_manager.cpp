@@ -1,5 +1,6 @@
 #include "tscode_manager.h"
 #include "tscode_capabilities.h"
+#include "pressure_manager.hpp"
 #include "version.h"
 #include "m1k-hal.hpp"
 
@@ -57,16 +58,16 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
 
     case TSCODE_RECIPROCATING_MOVE: {
         uint8_t speed;
-        if (cmd->speed->unit == TSCODE_UNIT_PERCENTAGE) {
+        if (cmd->speed == NULL) {
+            speed = 0;
+        } else if (cmd->speed->unit == TSCODE_UNIT_PERCENTAGE) {
             speed = 255.0 * cmd->speed->value;
         } else {
             speed = cmd->speed->value;
         }
 
         if (speed == 0) {
-            // pressure_manager_soft_stop();
-            m1k_hal_set_milker_speed(speed);
-            m1k_hal_hv_power_off();
+            pressure_manager_request_stop();
         } else {
             m1k_hal_set_milker_speed(speed);
             m1k_hal_hv_power_on();
@@ -75,7 +76,7 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
     }
 
     case TSCODE_CONDITIONAL_STOP:
-        // pressure_manager_soft_stop();
+        pressure_manager_request_stop();
         break;
 
     case TSCODE_HALT_IMMEDIATE:

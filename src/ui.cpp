@@ -2,14 +2,23 @@
 #include "m1k-hal.hpp"
 #include "m1k-hal-strings.hpp"
 
+#include "images/bt_icon_0.h"
+#include "images/bt_icon_1.h"
+#include "images/rj_icon_0.h"
+#include "images/rj_icon_1.h"
+
 static const char* TAG = "UI:MANAGER";
 
 static UI::Page* current_page = nullptr;
-// static UI::Menu *current_menu = nullptr;
+static UI::Menu *current_menu = nullptr;
+
+static char* _toast[40];
 
 void ui_init(void) {
     M1K_HAL_ERRCHK(m1k_hal_register_button_cb(M1K_HAL_BUTTON_ANY, ui_handle_click));
     M1K_HAL_ERRCHK(m1k_hal_register_encoder_change(ui_handle_encoder));
+
+    _toast[0] = '\0';
 }
 
 void ui_open_page(UI::Page* page) {
@@ -19,6 +28,15 @@ void ui_open_page(UI::Page* page) {
 
     current_page = page;
     current_page->enter();
+}
+
+void ui_open_menu(UI::Menu* menu) {
+    if (current_menu != nullptr) {
+        current_menu->exit();
+    }
+
+    current_menu = menu;
+    current_menu->enter();
 }
 
 void ui_tick(void) {
@@ -37,4 +55,10 @@ void ui_handle_encoder(int difference) {
     if (current_page != nullptr) {
         current_page->on_encoder(difference);
     }
+}
+
+void ui_render_static(m1k_hal_display_t* display) {
+    int width = m1k_hal_get_display_width();
+    graphics_draw_image(width - 8, 0, &RJ_ICON_0);
+    graphics_draw_image(width - 18, 0, &BT_ICON_1);
 }

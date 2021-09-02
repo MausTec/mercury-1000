@@ -11,8 +11,6 @@ TaskHandle_t PressureMgrTask;
 void pressure_mgr_task(void *param);
 
 void setup() {
-  Serial.begin(115200);
-
   m1k_hal_init();
   ui_init();
   tscode_manager_init();
@@ -27,10 +25,9 @@ void setup() {
     0
   );
 
-  Serial.println("Maus-Tec Electronics Presents:");
-  Serial.println("Mercury 1000");
-  Serial.print("m1k-hal version: ");
-  Serial.println(m1k_hal_get_version());
+  printf("Maus-Tec Electronics Presents:\n");
+  printf("Mercury 1000\n");
+  printf("m1k-hal version: %s\n", m1k_hal_get_version());
 
   ui_open_page(&Pages::Splash);
 }

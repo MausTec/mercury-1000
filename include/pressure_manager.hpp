@@ -22,5 +22,8 @@ double pressure_manager_get_mean(void);
 void pressure_manager_set_target_mean(double mean);
 double pressure_manager_get_target_mean(void);
 pressure_manager_seek_status_t pressure_manager_get_seek_status(void);
+void pressure_manager_request_stop(void);
+void pressure_manager_cancel_stop_request(void);
+bool pressure_manager_is_stop_requested(void);
 
 #endif

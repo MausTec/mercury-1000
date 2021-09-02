@@ -1,5 +1,6 @@
 #include "ui/page.hpp"
 #include "m1k-hal.hpp"
+#include "ui.hpp"
 
 namespace UI {
     void Page::enter(void) {
@@ -12,6 +13,7 @@ namespace UI {
             auto display = m1k_hal_get_display_ptr();
             display->clearBuffer();
             config->render_cb(display, this);
+            ui_render_static(display);
             display->sendBuffer();
         }
     }
