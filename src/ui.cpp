@@ -58,6 +58,10 @@ void ui_handle_encoder(int difference) {
 }
 
 void ui_render_static(m1k_hal_display_t* display) {
+    if (current_page == nullptr || !current_page->get_config()->ui_render_static) {
+        return;
+    }
+
     int width = m1k_hal_get_display_width();
     graphics_draw_image(width - 8, 0, &RJ_ICON_0);
     graphics_draw_image(width - 18, 0, &BT_ICON_1);

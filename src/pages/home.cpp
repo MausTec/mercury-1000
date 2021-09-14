@@ -361,6 +361,7 @@ static page_config_t config = {
     .exit_cb = &exit,
     .button_cb = &on_button,
     .encoder_cb = &encoder_change,
+    .ui_render_static = true,
 };
 
 Page Pages::Home(&config);

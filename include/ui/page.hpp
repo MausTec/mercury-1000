@@ -18,13 +18,17 @@ namespace UI {
         page_event_cb exit_cb;
         page_button_cb button_cb;
         page_encoder_cb encoder_cb;
+        bool ui_render_static;
     };
 
     typedef struct page_config page_config_t;
 
     /**
-     * This literally just delegates calls to the struct. I could almost certainly just
-     * remove this whole thing and use a struct directly. I'm searching for syntax sugar.
+     * This literally just delegates calls to the struct, but it also handles some common events during each. I could
+     * call the struct directly, which would allow me to return this library to C, but I'd want a stable way of handling
+     * those lifecycle hooks with their callbacks.
+     * 
+     * Something like void page_enter(page_config_t &page);
      */
     class Page {
         public:
@@ -36,6 +40,7 @@ namespace UI {
             void exit(void);
             void on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
             void on_encoder(int);
+            page_config_t *get_config(void) { return config; };
 
         private:
             page_config_t *config;

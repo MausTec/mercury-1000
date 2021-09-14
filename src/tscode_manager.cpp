@@ -3,10 +3,16 @@
 #include "pressure_manager.hpp"
 #include "version.h"
 #include "m1k-hal.hpp"
+#include "wifi_manager.h"
 
 tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response, size_t resp_len);
 
+static wifi_ap_config_t _tmp_wifi_config;
+
 void tscode_manager_init(void) {
+    _tmp_wifi_config.ssid[0] = '\0';
+    _tmp_wifi_config.password[0] = '\0';
+
     tscode_device_vendor_details_t vendor = {
         .vendor = "Maus-Tec Electronics",
         .device = "Mercury 1000",
@@ -83,6 +89,35 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
         m1k_hal_hv_power_off();
         m1k_hal_set_milker_speed(0x00);
         break;
+
+    // Set WiFi SSID
+    case __S(170): {
+        if (cmd->str != NULL && cmd->str[0] != '\0') {
+            printf("WIFI SET SSID: %s\n", cmd->str);
+            strncpy(_tmp_wifi_config.ssid, cmd->str, WIFI_SSID_MAX_LEN);
+        } else {
+            return TSCODE_RESPONSE_FAULT;
+        }
+        break;
+    }
+
+    // Set WiFi Password
+    case __S(171): {
+        if (cmd->str != NULL && cmd->str[0] != '\0') {
+            printf("WIFI SET PASSWORD: %s\n", cmd->str);
+            strncpy(_tmp_wifi_config.password, cmd->str, WIFI_PASSWORD_MAX_LEN);
+        } else {
+            return TSCODE_RESPONSE_FAULT;
+        }
+        break;
+    }
+
+    // Connect to WiFi
+    case __S(172): {
+        if (!wifi_manager_connect(&_tmp_wifi_config)) {
+            return TSCODE_RESPONSE_FAULT;
+        }
+    }
 
     default:
         return TSCODE_RESPONSE_NO_CAPABILITY;

@@ -4,3 +4,6 @@
 [submodule "lib/ts-code"]
 	path = lib/ts-code
 	url = https://github.com/MausTec/ts-code
+[submodule "components/u8g2"]
+	path = components/u8g2
+	url = https://github.com/olikraus/u8g2

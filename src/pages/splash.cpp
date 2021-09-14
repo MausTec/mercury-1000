@@ -64,6 +64,7 @@ static page_config_t config = {
     .exit_cb = &exit,
     .button_cb = nullptr,
     .encoder_cb = nullptr,
+    .ui_render_static = false,
 };
 
 Page Pages::Splash(&config);
