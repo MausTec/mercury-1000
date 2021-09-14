@@ -6,6 +6,7 @@
 #include "pressure_manager.hpp"
 #include "tscode_manager.h"
 #include "esp_task_wdt.h"
+#include "version.h"
 
 TaskHandle_t PressureMgrTask;
 void pressure_mgr_task(void *param);
@@ -27,6 +28,7 @@ void setup() {
 
   printf("Maus-Tec Electronics Presents:\n");
   printf("Mercury 1000\n");
+  printf("Firmware version: %s\n", VERSION);
   printf("m1k-hal version: %s\n", m1k_hal_get_version());
 
   ui_open_page(&Pages::Splash);
