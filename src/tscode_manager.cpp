@@ -5,9 +5,18 @@
 #include "m1k-hal.hpp"
 #include <WiFi.h>
 #include "update_helper.h"
+#include <driver/i2c.h>
 
 static char WIFI_SSID[32] = "";
 static char WIFI_PASSWORD[64] = "";
+
+#define I2C_EXT_NUM                 I2C_NUM_1
+#define I2C_MASTER_TX_BUF_DISABLE   0
+#define I2C_MASTER_RX_BUF_DISABLE   0
+#define I2C_MASTER_FREQ_HZ          10000
+#define I2C_TIMEOUT_MS              1000
+#define I2C_ACK_CHECK_EN            0x1
+#define I2C_ACK_CHECK_DIS           0x0
 
 tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response, size_t resp_len);
 
@@ -41,10 +50,37 @@ void tscode_manager_init(void) {
     // Conditional stop (return to 0 then stop)
     cap.capability = TSCODE_CAP_CONDITIONAL_STOP;
     tscode_register_channel(&cap);
+
+    // For now, just set direction and manually run I2C commands
+    m1k_hal_set_accessory_mode(M1K_HAL_ACCESSORY_SLAVE);
 }
 
 void tscode_manager_tick(void) {
+    // Process Serial Commands
     tscode_process_stream(stdin, stdout, &tscode_callback);
+
+    // Process I2C Commands
+    static char i2c_buffer[256] = "";
+    static size_t i2c_buffer_cursor = 0;
+
+    while (0 < i2c_slave_read_buffer(I2C_EXT_NUM, (uint8_t*) i2c_buffer + i2c_buffer_cursor, 1, 0)) {
+        char c = i2c_buffer[i2c_buffer_cursor];
+
+        if (c == '\n') {
+            char i2c_tx_buffer[120] = "";
+            tscode_process_buffer(i2c_buffer, &tscode_callback, i2c_tx_buffer, 119);
+            
+            i2c_buffer[0] = '\0';
+            i2c_buffer_cursor = 0;
+
+            i2c_reset_tx_fifo(I2C_EXT_NUM);
+            i2c_slave_write_buffer(I2C_EXT_NUM, (uint8_t*) i2c_tx_buffer, strlen(i2c_tx_buffer), 0);
+        } else {
+            i2c_buffer_cursor++;
+        }
+    }
+
+    // Process BLE Commands
 }
 
 tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response, size_t resp_len) {
