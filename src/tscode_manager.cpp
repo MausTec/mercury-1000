@@ -69,6 +69,7 @@ void tscode_manager_tick(void) {
         if (c == '\n') {
             char i2c_tx_buffer[120] = "";
             tscode_process_buffer(i2c_buffer, &tscode_callback, i2c_tx_buffer, 119);
+            printf("TSCode from I2C: %s\n", i2c_tx_buffer);
             
             i2c_buffer[0] = '\0';
             i2c_buffer_cursor = 0;
