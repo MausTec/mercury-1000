@@ -174,6 +174,16 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
         break;
     }
 
+    // Set PWM Freq
+    case __S(174): {
+        if (cmd->str != NULL && cmd->str[0] != '\0') {
+            m1k_hal_set_drive_freq(atoi(cmd->str));
+        } else {
+            return TSCODE_RESPONSE_FAULT;
+        }
+        break;
+    }
+
     default:
         return TSCODE_RESPONSE_NO_CAPABILITY;
     }
