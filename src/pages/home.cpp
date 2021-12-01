@@ -1,5 +1,6 @@
-#include "ui/page.hpp"
+#include "ui.hpp"
 #include "pages.hpp"
+#include "menus.hpp"
 #include "graphics.hpp"
 #include "pressure_manager.hpp"
 
@@ -306,24 +307,13 @@ static void encoder_change(int difference, Page* page) {
 }
 
 static void on_button(m1k_hal_button_t button, m1k_hal_button_evt_t evt, Page *page) {
-    long ms = esp_timer_get_time() / 1000L;
-
-    if (button == M1K_HAL_BUTTON_MENU && evt == M1K_HAL_BUTTON_EVT_PRESS) {
-        if (ms - state.last_click_ms < DOUBLE_CLICK_DELAY_MS) {
+    if (button == M1K_HAL_BUTTON_MENU) {
+        if (evt == M1K_HAL_BUTTON_EVT_PRESS) {
             state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
             state.speed = 0;
             set_speed(0);
-        } else {
-            state.last_click_ms = ms;
-
-            // switch (state.ctrl_item) {
-            //     case HOME_CONTROL_ITEM_PRESSURE:
-            //         state.ctrl_item = HOME_CONTROL_ITEM_SPEED;
-            //         break;
-            //     case HOME_CONTROL_ITEM_SPEED:
-            //     default:
-            //         state.ctrl_item = HOME_CONTROL_ITEM_PRESSURE;
-            // }
+        } else if (evt == M1K_HAL_BUTTON_EVT_HOLD) {
+            ui_open_menu(&Menus::MainMenu);
         }
     }
 

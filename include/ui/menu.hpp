@@ -3,42 +3,67 @@
 
 #include "m1k-hal.hpp"
 
+#define MENU_TITLE_MAXLEN 40
+
 namespace UI {
     class Menu;
 
-    typedef void (*menu_event_cb)(Menu *p);
-    typedef void (*menu_render_cb)(m1k_hal_display_t *display, Menu *p);
-    typedef void (*menu_encoder_cb)(int difference, Menu *p);
-    typedef void (*menu_button_cb)(m1k_hal_button_t button, m1k_hal_button_evt_t evt, Menu *p);
+    typedef void (*menu_event_cb)(Menu* p);
+    typedef void (*menu_item_cb)(Menu* p, void* ptr_arg, int i_arg);
 
     struct menu_config {
         menu_event_cb enter_cb;
-        menu_render_cb render_cb;
-        menu_event_cb  loop_cb;
         menu_event_cb exit_cb;
-        menu_button_cb button_cb;
-        menu_encoder_cb encoder_cb;
     };
 
     typedef struct menu_config menu_config_t;
 
-    /**
-     * This literally just delegates calls to the struct. I could almost certainly just
-     * remove this whole thing and use a struct directly. I'm searching for syntax sugar.
-     */
+    struct menu_item {
+        char name[MENU_TITLE_MAXLEN + 1];
+        menu_item_cb cb;
+        void* ptr_arg;
+        int i_arg;
+
+        struct menu_item* _next = nullptr;
+        struct menu_item* _prev = nullptr;
+    };
+
+    typedef struct menu_item menu_item_t;
+
     class Menu {
-        public:
-            Menu(menu_config_t *cfg) : config(cfg) {};
+    public:
+        Menu(const char *title, menu_config_t* cfg) : config(cfg) {
+            strlcpy(this->title, title, MENU_TITLE_MAXLEN);
+        };
 
-            void enter(void);
-            void render(void);
-            void loop(void);
-            void exit(void);
-            void on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
-            void on_encoder(int);
+        void enter(Menu* previous = nullptr, bool save_history = true);
+        void render(void);
+        void loop(void);
+        void exit(void);
+        void on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
+        void on_encoder(int);
 
-        private:
-            menu_config_t *config;
+        // These are used inside the lifecycle:
+        void clear_items(void);
+        void add_item(const char* name, menu_item_cb cb, void* ptr_arg = nullptr, int i_arg = 0);
+        size_t count_items(void);
+        size_t current_index(void);
+        bool has_items(void);
+
+    protected:
+
+        void select_next(int dist = 1);
+        void select_prev(int dist = 1);
+        void confirm_selection(void);
+
+    private:
+        char title[MENU_TITLE_MAXLEN + 1] = "";
+        menu_config_t* config;
+        Menu* previous_menu = nullptr;
+
+        menu_item_t* first;
+        menu_item_t* last;
+        menu_item_t* current;
     };
 }
 

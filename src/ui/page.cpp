@@ -9,6 +9,10 @@ namespace UI {
     }
 
     void Page::render(void) {
+        if (ui_has_menu_open() || ui_has_input_open()) {
+            return;
+        }
+        
         if (config->render_cb != nullptr) {
             auto display = m1k_hal_get_display_ptr();
             display->clearBuffer();
