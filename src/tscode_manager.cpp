@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include "update_helper.h"
 #include <driver/i2c.h>
+#include "config.hpp"
 
 static char WIFI_SSID[32] = "";
 static char WIFI_PASSWORD[64] = "";
@@ -130,7 +131,7 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
     case __S(170): {
         if (cmd->str != NULL && cmd->str[0] != '\0') {
             printf("WIFI SET SSID: %s\n", cmd->str);
-            strncpy(WIFI_SSID, cmd->str, 31);
+            strncpy(Config.wifi_ssid, cmd->str, 31);
         } else {
             return TSCODE_RESPONSE_FAULT;
         }
@@ -141,7 +142,7 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
     case __S(171): {
         if (cmd->str != NULL && cmd->str[0] != '\0') {
             printf("WIFI SET PASSWORD: %s\n", cmd->str);
-            strncpy(WIFI_PASSWORD, cmd->str, 63);
+            strncpy(Config.wifi_key, cmd->str, 63);
         } else {
             return TSCODE_RESPONSE_FAULT;
         }
@@ -150,7 +151,8 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
 
     // Connect to WiFi
     case __S(172): {
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        Config.wifi_on = true;
+        WiFi.begin(Config.wifi_ssid, Config.wifi_key);
         printf("connecting to wifi");
 
         int attempts = 0;
@@ -165,6 +167,7 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
 
         printf("ok\n");
         printf("IP: %s\n", WiFi.localIP().toString().c_str());
+        config_save_to_nvfs(CONFIG_DEFAULT_FILE, &Config);
         break;
     }
 
