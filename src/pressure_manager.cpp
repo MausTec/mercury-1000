@@ -102,10 +102,11 @@ void pressure_manager_tick(void) {
 }
 
 void _check_seek_pressure(void) {
-    double delta = pressure_manager_get_mean() - _seek_target_mean;
+    double mean = pressure_manager_get_mean();
+    double delta = mean - _seek_target_mean;
 
     if (fabs(delta) > PM_SEEK_DELTA_THRESHOLD) {
-        ESP_LOGE(TAG, "PM Seek exceeds threshold: %0.2f > %0.2f", delta, PM_SEEK_DELTA_THRESHOLD);
+        ESP_LOGE(TAG, "PM Seek exceeds threshold: %0.2f > %0.2f (mean: %0.2f, set: %0.2f)", delta, PM_SEEK_DELTA_THRESHOLD, mean, _seek_target_mean);
 
         if (_seek_status != PM_SEEK_CHECK_PRESSURE) {
             _seek_adjust_attempts = PM_SEEK_ATTEMPT_LIMIT;
@@ -123,7 +124,7 @@ void _check_seek_pressure(void) {
             m1k_hal_air_out();
         }
     } else {
-        ESP_LOGE(TAG, "PM Seek within threshold: %0.2f <= %0.2f", delta, PM_SEEK_DELTA_THRESHOLD);
+        ESP_LOGE(TAG, "PM Seek within threshold: %0.2f <= %0.2f (mean: %0.2f, set: %0.2f)", delta, PM_SEEK_DELTA_THRESHOLD, mean, _seek_target_mean);
         _seek_status = PM_SEEK_AT_SET_POINT;
     }
 }
@@ -141,6 +142,10 @@ void _on_falling_peak(void) {
         _seek_strokes_remain = PM_SEEK_CHECK_STROKE_COUNT;
         _seek_status = PM_SEEK_CHECK_PRESSURE;
         m1k_hal_air_stop();
+
+        // Reset averages
+        min_peak.clear();
+        max_peak.clear();
     }
 
     // Check Stroke Burndown
