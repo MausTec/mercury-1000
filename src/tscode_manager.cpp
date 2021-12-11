@@ -8,9 +8,6 @@
 #include <driver/i2c.h>
 #include "config.hpp"
 
-static char WIFI_SSID[32] = "";
-static char WIFI_PASSWORD[64] = "";
-
 #define I2C_EXT_NUM                 I2C_NUM_1
 #define I2C_MASTER_TX_BUF_DISABLE   0
 #define I2C_MASTER_RX_BUF_DISABLE   0
@@ -184,6 +181,12 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
         } else {
             return TSCODE_RESPONSE_FAULT;
         }
+        break;
+    }
+
+    case __S(175): {
+        double mean = pressure_manager_get_mean();
+        pressure_manager_set_target_mean(mean);
         break;
     }
 

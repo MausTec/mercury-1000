@@ -17,6 +17,16 @@ void Menu::enter(Menu* previous, bool save_history) {
     this->render();
 }
 
+void Menu::rerender(void) {
+    this->clear_items();
+
+    if (this->config->enter_cb != nullptr) {
+        this->config->enter_cb(this);
+    }
+
+    this->render();
+}
+
 void Menu::render(void) {
     m1k_hal_display_t* display = m1k_hal_get_display_ptr();
     const int left = m1k_hal_get_display_left();
