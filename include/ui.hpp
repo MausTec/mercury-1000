@@ -14,7 +14,7 @@ void ui_toast(const char *msg);
 void ui_tick(void);
 void ui_handle_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
 void ui_handle_encoder(int difference);
-void ui_render_static(m1k_hal_display_t* display);
+void ui_render_static(u8g2_t* display);
 
 bool ui_has_menu_open(void);
 bool ui_has_input_open(void);

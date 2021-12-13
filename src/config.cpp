@@ -133,7 +133,7 @@ esp_err_t config_load_from_nvfs(const char* filename, config_t* cfg) {
         fsize = ftell(f);
         rewind(f);
 
-        ESP_LOGD(TAG, "Allocating %d bytes for file: %s", fsize, path);
+        ESP_LOGD(TAG, "Allocating %ld bytes for file: %s", fsize, path);
         buffer = (char*) malloc(fsize + 1);
 
         if (!buffer) {
@@ -149,7 +149,7 @@ esp_err_t config_load_from_nvfs(const char* filename, config_t* cfg) {
             return ESP_FAIL;
         }
         
-        ESP_LOGI(TAG, "Loaded %d bytes from %s\n%s", fsize, path, buffer);
+        ESP_LOGI(TAG, "Loaded %ld bytes from %s\n%s", fsize, path, buffer);
 
         config_deserialize(cfg, buffer);
 
@@ -188,7 +188,7 @@ esp_err_t config_save_to_nvfs(const char* filename, config_t* cfg) {
     long fsize = ftell(f);
     fclose(f);
 
-    ESP_LOGI(TAG, "Wrote %d bytes:\n%s", fsize, json);
+    ESP_LOGI(TAG, "Wrote %ld bytes:\n%s", fsize, json);
 
     cJSON_Delete(root);
     cJSON_free(json);

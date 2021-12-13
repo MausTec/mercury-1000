@@ -15,10 +15,10 @@ namespace UI {
         
         if (config->render_cb != nullptr) {
             auto display = m1k_hal_get_display_ptr();
-            display->clearBuffer();
+            u8g2_ClearBuffer(display);
             config->render_cb(display, this);
             ui_render_static(display);
-            display->sendBuffer();
+            u8g2_SendBuffer(display);
         }
     }
 

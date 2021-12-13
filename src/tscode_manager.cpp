@@ -3,10 +3,12 @@
 #include "pressure_manager.hpp"
 #include "version.h"
 #include "m1k-hal.hpp"
-#include <WiFi.h>
 #include "update_helper.h"
 #include <driver/i2c.h>
 #include "config.hpp"
+#include "wifi_manager.h"
+
+#include <cstring>
 
 #define I2C_EXT_NUM                 I2C_NUM_1
 #define I2C_MASTER_TX_BUF_DISABLE   0
@@ -83,7 +85,9 @@ void tscode_manager_tick(void) {
 }
 
 tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response, size_t resp_len) {
-    switch (cmd->type) {
+    // FIXME: this is being cast to an int for now to avoid erroring on non-enumerated custom codes.
+    //        all custom codes should be removed and handled elsewhere as a standard command
+    switch ((int)cmd->type) {
     case TSCODE_AIR_IN_OPEN:
         m1k_hal_air_in();
         break;
@@ -149,11 +153,11 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
     // Connect to WiFi
     case __S(172): {
         Config.wifi_on = true;
-        WiFi.begin(Config.wifi_ssid, Config.wifi_key);
+        wifi_manager_connect_to_ap(Config.wifi_ssid, Config.wifi_key);
         printf("connecting to wifi");
 
         int attempts = 0;
-        while (WiFi.status() != WL_CONNECTED) {
+        while (wifi_manager_get_status() != WIFI_MANAGER_CONNECTED) {
             if (attempts++ > 100) {
                 printf("failed\n");
                 return TSCODE_RESPONSE_FAULT;
@@ -163,14 +167,14 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
         }
 
         printf("ok\n");
-        printf("IP: %s\n", WiFi.localIP().toString().c_str());
+        printf("IP: %s\n", wifi_manager_get_local_ip());
         config_save_to_nvfs(CONFIG_DEFAULT_FILE, &Config);
         break;
     }
 
     // Update from Web
     case __S(173): {
-        UpdateHelper::updateFromWeb();
+        // UpdateHelper::updateFromWeb();
         break;
     }
 

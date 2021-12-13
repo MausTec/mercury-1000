@@ -4,6 +4,11 @@
 #include "graphics.hpp"
 #include "pressure_manager.hpp"
 
+#include "esp_log.h"
+#include "esp_timer.h"
+#include <math.h>
+#include "cstring"
+
 #include "images/milker_icon_0.h"
 #include "images/milker_icon_1.h"
 #include "images/milker_icon_2.h"
@@ -53,7 +58,7 @@ static graphics_image_t* MILKER_ICONS[6] = {
 // large top = 7, bottom = 17
 // bar top = 19, bottom = 32
 
-static void draw_pressure_graph(m1k_hal_display_t* display, int min, int max, int lmark, int rmark, double value) {
+static void draw_pressure_graph(u8g2_t* display, int min, int max, int lmark, int rmark, double value) {
     auto left = m1k_hal_get_display_left() + 23;
     auto width = m1k_hal_get_display_width() - 23;
     auto top = 19;
@@ -77,8 +82,8 @@ static void draw_pressure_graph(m1k_hal_display_t* display, int min, int max, in
     }
 
     // Down Arrow
-    display->drawVLine(left + 2, top, 4);
-    display->drawTriangle(left, top + 4, left + 5, top + 4, left + 2, top + 7);
+    u8g2_DrawVLine(display, left + 2, top, 4);
+    u8g2_DrawTriangle(display, left, top + 4, left + 5, top + 4, left + 2, top + 7);
 
     // Rect
     auto bar_left = left + 7;
@@ -86,71 +91,71 @@ static void draw_pressure_graph(m1k_hal_display_t* display, int min, int max, in
     auto bar_center_x = bar_left + (bar_width / 2);
     double fill_space = floor(bar_width / 2.0);
 
-    display->drawFrame(bar_left, top, bar_width, 7);
-    display->drawVLine(bar_center_x, top, 7);
+    u8g2_DrawFrame(display, bar_left, top, bar_width, 7);
+    u8g2_DrawVLine(display, bar_center_x, top, 7);
 
     if (value < 0) {
-        double fill_width = floor(abs((double) value / min) * fill_space);
-        display->drawBox(bar_center_x - fill_width, top + 2, fill_width, 3);
+        double fill_width = floor(fabs((double) value / min) * fill_space);
+        u8g2_DrawBox(display, bar_center_x - fill_width, top + 2, fill_width, 3);
     } else {
-        double fill_width = floor(abs((double) value / max) * fill_space);
-        display->drawBox(bar_center_x, top + 2, fill_width + 1, 3);
+        double fill_width = floor(fabs((double) value / max) * fill_space);
+        u8g2_DrawBox(display, bar_center_x, top + 2, fill_width + 1, 3);
     }
 
     if (lmark < 0) {
-        double fill_width = floor(abs((double) lmark / min) * fill_space);
-        display->drawBox(bar_center_x - fill_width, top + 1, 1, 5);
+        double fill_width = floor(fabs((double) lmark / min) * fill_space);
+        u8g2_DrawBox(display, bar_center_x - fill_width, top + 1, 1, 5);
     } else {
-        double fill_width = floor(abs((double) lmark / max) * fill_space);
-        display->drawBox(bar_center_x + (fill_width - 1), top + 1, 1, 5);
+        double fill_width = floor(fabs((double) lmark / max) * fill_space);
+        u8g2_DrawBox(display, bar_center_x + (fill_width - 1), top + 1, 1, 5);
     }
 
     if (rmark < 0) {
-        double fill_width = floor(abs((double) rmark / min) * fill_space);
-        display->drawBox(bar_center_x - fill_width, top + 1, 1, 5);
+        double fill_width = floor(fabs((double) rmark / min) * fill_space);
+        u8g2_DrawBox(display, bar_center_x - fill_width, top + 1, 1, 5);
     } else {
-        double fill_width = floor(abs((double) rmark / max) * fill_space);
-        display->drawBox(bar_center_x + (fill_width - 1), top + 1, 1, 5);
+        double fill_width = floor(fabs((double) rmark / max) * fill_space);
+        u8g2_DrawBox(display, bar_center_x + (fill_width - 1), top + 1, 1, 5);
     }
 
 
     // Up Arrow
     auto rtri_left = left + width - 7;
-    display->drawVLine(rtri_left + 2, top + 3, 4);
-    display->drawTriangle(rtri_left - 1, top + 3, rtri_left + 5, top + 3, rtri_left + 2, top - 1);
+    u8g2_DrawVLine(display, rtri_left + 2, top + 3, 4);
+    u8g2_DrawTriangle(display, rtri_left - 1, top + 3, rtri_left + 5, top + 3, rtri_left + 2, top - 1);
 
     // Lower Text
-    display->setFont(u8g2_font_4x6_mf);
+    u8g2_SetFont(display, u8g2_font_4x6_mf);
     const char* unit_center = "0KPA";
-    auto unit_center_x = bar_center_x - (display->getStrWidth(unit_center) / 2) + 1;
+    auto unit_center_x = bar_center_x - (u8g2_GetStrWidth(display, unit_center) / 2) + 1;
     auto unit_top = top + 13;
-    display->drawStr(unit_center_x, unit_top, unit_center);
+    u8g2_DrawStr(display, unit_center_x, unit_top, unit_center);
 
     char unit_left[10] = "";
     snprintf(unit_left, 10, "%d", min);
-    display->drawStr(bar_left, unit_top, unit_left);
+    u8g2_DrawStr(display, bar_left, unit_top, unit_left);
 
     char unit_right[10] = "";
     snprintf(unit_right, 10, "%d", max);
-    auto unit_right_x = bar_left + bar_width - display->getStrWidth(unit_right) + 1;
-    display->drawStr(unit_right_x, unit_top, unit_right);
+    auto unit_right_x = bar_left + bar_width - u8g2_GetStrWidth(display, unit_right) + 1;
+    u8g2_DrawStr(display, unit_right_x, unit_top, unit_right);
 }
 
-static void draw_speed(m1k_hal_display_t* display, int speed, bool selected) {
+static void draw_speed(u8g2_t* display, int speed, bool selected) {
     auto left = m1k_hal_get_display_left() + 23;
     auto width = m1k_hal_get_display_width() - 23;
     auto center = left + width / 2;
 
-    display->setFont(u8g2_font_4x6_mf);
-    char* label = "SPEED";
-    auto label_width = display->getStrWidth(label);
-    display->drawStr(center - floor(label_width / 2), 5, label);
+    u8g2_SetFont(display, u8g2_font_4x6_mf);
+    const char* label = "SPEED";
+    auto label_width = u8g2_GetStrWidth(display, label);
+    u8g2_DrawStr(display, center - floor(label_width / 2), 5, label);
 
-    display->setFont(u8g2_font_7x14B_tf);
+    u8g2_SetFont(display, u8g2_font_7x14B_tf);
 
     if (speed > _speed_count && !state.stop_requested) {
         speed = _speed_count;
-        display->drawStr(center + 9, 15, "+");
+        u8g2_DrawStr(display, center + 9, 15, "+");
     }
 
     char value[4] = "";
@@ -162,39 +167,39 @@ static void draw_speed(m1k_hal_display_t* display, int speed, bool selected) {
         snprintf(value, 4, "%d", state.stop_requested ? 0 : speed);
     }
 
-    auto value_width = display->getStrWidth(value);
-    display->drawStr(center - floor(value_width / 2) - 1, 17, value);
+    auto value_width = u8g2_GetStrWidth(display, value);
+    u8g2_DrawStr(display, center - floor(value_width / 2) - 1, 17, value);
 
     if (selected) {
         int triangle_top = 9;
         int triangle_tip = 10;
 
         if (speed > 0 && !state.stop_requested) {
-            display->drawTriangle(center - triangle_tip, triangle_top, center - triangle_tip, triangle_top + 6, center - (triangle_tip + 3), triangle_top + 3);
+            u8g2_DrawTriangle(display, center - triangle_tip, triangle_top, center - triangle_tip, triangle_top + 6, center - (triangle_tip + 3), triangle_top + 3);
         }
 
         if (speed < _speed_count) {
-            display->drawTriangle(center + triangle_tip - 1, triangle_top, center + triangle_tip - 1, triangle_top + 6, center + (triangle_tip + 2), triangle_top + 3);
+            u8g2_DrawTriangle(display, center + triangle_tip - 1, triangle_top, center + triangle_tip - 1, triangle_top + 6, center + (triangle_tip + 2), triangle_top + 3);
         }
     }
 }
 
-static void draw_depth(m1k_hal_display_t* display, int pressure_delta, bool selected) {
+static void draw_depth(u8g2_t* display, int pressure_delta, bool selected) {
     const auto left = m1k_hal_get_display_left() + 23 + 7;
 
-    display->setFont(u8g2_font_4x6_mf);
+    u8g2_SetFont(display, u8g2_font_4x6_mf);
     const char* label = "DEPTH";
-    auto label_width = display->getStrWidth(label);
-    display->drawStr(left + 5, 5, label);
+    auto label_width = u8g2_GetStrWidth(display, label);
+    u8g2_DrawStr(display, left + 5, 5, label);
 
     if (state.air_direction == M1K_HAL_AIR_CLOSED) {
         const int plus_minus_top = 10;
-        display->drawLine(left + 1, plus_minus_top, left + 1, plus_minus_top + 2);
-        display->drawLine(left, plus_minus_top + 1, left + 2, plus_minus_top + 1);
-        display->drawLine(left, plus_minus_top + 5, left + 2, plus_minus_top + 5);
+        u8g2_DrawLine(display, left + 1, plus_minus_top, left + 1, plus_minus_top + 2);
+        u8g2_DrawLine(display, left, plus_minus_top + 1, left + 2, plus_minus_top + 1);
+        u8g2_DrawLine(display, left, plus_minus_top + 5, left + 2, plus_minus_top + 5);
     }
 
-    display->setFont(u8g2_font_7x14B_tf);
+    u8g2_SetFont(display, u8g2_font_7x14B_tf);
     const int value_center = left + (label_width / 2) + 5;
     char value[4] = "";
 
@@ -206,37 +211,37 @@ static void draw_depth(m1k_hal_display_t* display, int pressure_delta, bool sele
         strncpy(value, "IN", 4);
     }
 
-    int value_width = display->getStrWidth(value);
-    display->drawStr(value_center - floor(value_width / 2) - 1, 17, value);
+    int value_width = u8g2_GetStrWidth(display, value);
+    u8g2_DrawStr(display, value_center - floor(value_width / 2) - 1, 17, value);
 }
 
-static void draw_frequency(m1k_hal_display_t* display, double frequency) {
+static void draw_frequency(u8g2_t* display, double frequency) {
     char label[16] = "STR/s";
-    display->setFont(u8g2_font_4x6_tf);
+    u8g2_SetFont(display, u8g2_font_4x6_tf);
     int left = m1k_hal_get_display_left() + (m1k_hal_get_display_width()
-        - display->getStrWidth(label) - 0);
+        - u8g2_GetStrWidth(display, label) - 0);
     int top = 17;
-    display->drawStr(left, top, label);
+    u8g2_DrawStr(display, left, top, label);
 
     // decimal part first because this stupid wide space and period
     int decimal = frequency * 10;
     snprintf(label, 16, "%d", decimal % 10);
-    left -= display->getStrWidth(label) + 2;
-    display->drawStr(left, top, label);
+    left -= u8g2_GetStrWidth(display, label) + 2;
+    u8g2_DrawStr(display, left, top, label);
 
     // fuck it we'll just put a pixel here
-    display->drawPixel(left - 2, top - 1);
+    u8g2_DrawPixel(display, left - 2, top - 1);
 
     // okay and the rest
     snprintf(label, 16, "%d", (int) floor(frequency));
-    left -= display->getStrWidth(label) + 3;
-    display->drawStr(left, top, label);
+    left -= u8g2_GetStrWidth(display, label) + 3;
+    u8g2_DrawStr(display, left, top, label);
 }
 
-static void render(m1k_hal_display_t* display, Page* page) {
+static void render(u8g2_t* display, Page* page) {
     auto milker_icon = MILKER_ICONS[state.icon_step];
 
-    display->setDrawColor(1);
+    u8g2_SetDrawColor(display, 1);
     graphics_draw_image(0, 0, milker_icon);
     draw_pressure_graph(display, -30, 15, state.peak_min, state.peak_max, state.pressure);
     draw_speed(display, state.speed, state.ctrl_item == HOME_CONTROL_ITEM_SPEED);

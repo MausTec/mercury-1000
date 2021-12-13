@@ -4,6 +4,9 @@
 #include "average.hpp"
 #include "esp_log.h"
 
+#include <math.h>
+#include "esp_timer.h"
+
 // TODO: Move these to Config struct.
 
 #define UPDATE_FREQUENCY_MS 10

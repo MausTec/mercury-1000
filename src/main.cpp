@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "m1k-hal.hpp"
 #include "m1k-hal-strings.hpp"
 #include "ui.hpp"
@@ -9,10 +8,13 @@
 #include "version.h"
 #include "config.hpp"
 
+#include "wifi_manager.h"
+#include "websocket_manager.h"
+
 TaskHandle_t PressureMgrTask;
 void pressure_mgr_task(void* param);
 
-void setup() {
+extern "C" void app_main() {
     m1k_hal_init();
 
     // Populate the global config struct with the default file:
@@ -41,13 +43,21 @@ void setup() {
     config_serialize(&Config, config_str, 512);
     printf("Config Loaded:\n%s\n", config_str);
 
-    ui_open_page(&Pages::Splash);
-}
+    wifi_manager_init();
+    wifi_manager_connect_to_ap("Here Be Dragons", "RAWR!barkbark");
+    websocket_manager_connect_to_remote("192.168.1.3", 8080);
 
-void loop() {
-    m1k_hal_tick();
-    ui_tick();
-    tscode_manager_tick();
+    ui_open_page(&Pages::Splash);
+
+    printf("Startup sequence complete.\n");
+
+    for (;;) {
+        m1k_hal_tick();
+        ui_tick();
+        tscode_manager_tick();
+
+        vTaskDelay(1);
+    }
 }
 
 void pressure_mgr_task(void* param) {

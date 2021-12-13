@@ -32,9 +32,7 @@ namespace UI {
 
     class Menu {
     public:
-        Menu(const char *title, menu_config_t* cfg) : config(cfg) {
-            strlcpy(this->title, title, MENU_TITLE_MAXLEN);
-        };
+        Menu(const char *title, menu_config_t* cfg);
 
         void enter(Menu* previous = nullptr, bool save_history = true);
         void render(void);

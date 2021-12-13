@@ -8,7 +8,7 @@
 #define SPIFFS_PARTITION_LABEL "spiffs"
 #define CONFIG_DEFAULT_FILE "config.json"
 
-#define WIFI_SSID_MAX_LEN 64
+#define WIFI_SSID_MAX_LEN 32
 #define WIFI_KEY_MAX_LEN 64
 #define MAX_FILE_PATH_LEN 64
 

@@ -1,14 +1,15 @@
 #include "update_helper.h"
 #include "VERSION.h"
 
-#include <SD.h>
-#include <HTTPClient.h>
+#include <stdio.h>
 
 #define UPDATE_BUFFER_SIZE (1024 * 1)
 
 namespace UpdateHelper {
   bool pendingLocalUpdate = false;
   bool pendingWebUpdate = false;
+
+#ifdef ARDUINO
 
   size_t waitUntilAvailable(Stream *stream, long timeout_ms = 10000) {
     long start_ms = millis();
@@ -210,6 +211,8 @@ namespace UpdateHelper {
       fileHttp.end();
     }
   }
+
+#endif
 
   int compareVersion(const char *a, const char *b) {
     int va[3] = { 0, 0, 0 };

@@ -7,7 +7,7 @@ namespace UI {
     class Page;
 
     typedef void (*page_event_cb)(Page *p);
-    typedef void (*page_render_cb)(m1k_hal_display_t *display, Page *p);
+    typedef void (*page_render_cb)(u8g2_t *display, Page *p);
     typedef void (*page_encoder_cb)(int difference, Page *p);
     typedef void (*page_button_cb)(m1k_hal_button_t button, m1k_hal_button_evt_t evt, Page *p);
 

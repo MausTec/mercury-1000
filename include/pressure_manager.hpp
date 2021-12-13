@@ -7,6 +7,11 @@
 #define PM_SEEK_AUTO_INTERVAL_MS 15000
 #define PM_SEEK_DELTA_THRESHOLD 0.5
 
+// TODO: Add a state for PM_SEEK_SAVE_SET_POINT or similar to allow for 
+//       updating the setupoint after pressure changes are manually started.
+//       this will go through the same "PM_SEEK_CHECK_PRESSURE" process but
+//       at the end save the pressure instead of checking.
+
 enum pressure_manager_seek_status {
     PM_SEEK_DISABLED,
     PM_SEEK_INCREASE_PRESSURE,

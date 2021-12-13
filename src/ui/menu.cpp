@@ -1,7 +1,13 @@
 #include "ui.hpp"
 #include "ui/menu.hpp"
 
+#include <cstring>
+
 using namespace UI;
+
+Menu::Menu(const char* title, menu_config_t* cfg) : config(cfg) {
+    strlcpy(this->title, title, MENU_TITLE_MAXLEN);
+};
 
 void Menu::enter(Menu* previous, bool save_history) {
     if (save_history) {
@@ -28,20 +34,20 @@ void Menu::rerender(void) {
 }
 
 void Menu::render(void) {
-    m1k_hal_display_t* display = m1k_hal_get_display_ptr();
+    u8g2_t* display = m1k_hal_get_display_ptr();
     const int left = m1k_hal_get_display_left();
     const int right = left + m1k_hal_get_display_width();
     const int icon_width = 10 * 2;
     const int menu_start_y = 9;
 
-    display->clearBuffer();
+    u8g2_ClearBuffer(display);
 
     const size_t num_lines = 3;
 
     // render menu title
-    display->setFont(u8g2_font_4x6_mf);
-    display->drawStr(left + 1, 6, this->title);
-    display->drawLine(left, 7, right - icon_width, 7);
+    u8g2_SetFont(display, u8g2_font_4x6_mf);
+    u8g2_DrawStr(display, left + 1, 6, this->title);
+    u8g2_DrawLine(display, left, 7, right - icon_width, 7);
 
     { // render menu items
         menu_item_t* ptr = this->current;
@@ -55,14 +61,14 @@ void Menu::render(void) {
             int baseline = (menu_start_y + 6) + (8 * i);
 
             if (ptr == this->current) {
-                display->setDrawColor(0x01);
-                display->drawBox(left, baseline - 6, right - left - 3, 7);
+                u8g2_SetDrawColor(display, 0x01);
+                u8g2_DrawBox(display, left, baseline - 6, right - left - 3, 7);
             }
 
-            display->setFontMode(0x01);
-            display->setDrawColor(0x02);
-            display->drawStr(left + 1, baseline, ptr->name);
-            display->setDrawColor(0x01);
+            u8g2_SetFontMode(display, 0x01);
+            u8g2_SetDrawColor(display, 0x02);
+            u8g2_DrawStr(display, left + 1, baseline, ptr->name);
+            u8g2_SetDrawColor(display, 0x01);
 
             ptr = ptr->_next;
         }
@@ -73,7 +79,7 @@ void Menu::render(void) {
         size_t current_index = this->current_index();
         size_t scrollbar_height = m1k_hal_get_display_height() - menu_start_y;
         size_t scrollbar_top = menu_start_y;
-        
+
         if (item_count > num_lines) {
             size_t overflow = item_count - num_lines;
             size_t movement_height = scrollbar_height;
@@ -90,11 +96,11 @@ void Menu::render(void) {
             scrollbar_top += (movement_height * nperc);
         }
 
-        display->drawBox(right - 2, scrollbar_top, 2, scrollbar_height);
+        u8g2_DrawBox(display, right - 2, scrollbar_top, 2, scrollbar_height);
     }
 
     ui_render_static(display);
-    display->sendBuffer();
+    u8g2_SendBuffer(display);
 }
 
 void Menu::loop(void) {
@@ -119,6 +125,8 @@ void Menu::on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt) {
         break;
     case M1K_HAL_BUTTON_AIRIN:
         confirm_selection();
+        break;
+    default:
         break;
     }
 }

@@ -2,6 +2,8 @@
 #include "version.h"
 #include "images/mt_8bit.h"
 
+#include "esp_timer.h"
+
 using namespace UI;
 static const char *TAG = "PAGE:SPLASH";
 
@@ -14,8 +16,8 @@ static void enter(Page* page) {
     state.delay_us = esp_timer_get_time();
 }
 
-static void render(m1k_hal_display_t* display, Page* page) {
-    display->setDrawColor(1);
+static void render(u8g2_t* display, Page* page) {
+    u8g2_SetDrawColor(display, 1);
 
     if (state.step == 0) {
         auto width = m1k_hal_get_display_width() - MT_8BIT.width;
@@ -26,15 +28,15 @@ static void render(m1k_hal_display_t* display, Page* page) {
         auto left = m1k_hal_get_display_left();
         auto dwidth = m1k_hal_get_display_width();
 
-        display->setFont(u8g2_font_freedoomr10_tu);
-        auto width = dwidth - display->getStrWidth(product_name);
-        display->drawStr(left + (width / 2), 15, product_name);
+        u8g2_SetFont(display, u8g2_font_freedoomr10_tu);
+        auto width = dwidth - u8g2_GetStrWidth(display, product_name);
+        u8g2_DrawStr(display, left + (width / 2), 15, product_name);
         
-        display->drawHLine(left + 10, m1k_hal_get_display_height() - 15, dwidth - 20);
+        u8g2_DrawHLine(display, left + 10, m1k_hal_get_display_height() - 15, dwidth - 20);
 
-        display->setFont(u8g2_font_6x10_tf);
-        width = dwidth - display->getStrWidth(product_rev);
-        display->drawStr(left + (width / 2), m1k_hal_get_display_height() - 3, product_rev);
+        u8g2_SetFont(display, u8g2_font_6x10_tf);
+        width = dwidth - u8g2_GetStrWidth(display, product_rev);
+        u8g2_DrawStr(display, left + (width / 2), m1k_hal_get_display_height() - 3, product_rev);
     }
 }
 

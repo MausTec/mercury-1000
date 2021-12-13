@@ -2,7 +2,7 @@
 #define __graphics_hpp
 
 #include "m1k-hal.hpp"
-#include "U8g2lib.h"
+#include "u8g2.h"
 
 typedef const unsigned char graphics_image_data_t;
 

@@ -2,6 +2,8 @@
 #include "m1k-hal.hpp"
 #include "m1k-hal-strings.hpp"
 
+#include "esp_log.h"
+
 #include "images/bt_icon_0.h"
 #include "images/bt_icon_1.h"
 #include "images/rj_icon_0.h"
@@ -12,7 +14,7 @@ static const char* TAG = "UI:MANAGER";
 static UI::Page* current_page = nullptr;
 static UI::Menu *current_menu = nullptr;
 
-static char* _toast[40];
+static char _toast[40];
 
 void ui_init(void) {
     M1K_HAL_ERRCHK(m1k_hal_register_button_cb(M1K_HAL_BUTTON_ANY, ui_handle_click));
@@ -79,7 +81,7 @@ void ui_handle_encoder(int difference) {
     }
 }
 
-void ui_render_static(m1k_hal_display_t* display) {
+void ui_render_static(u8g2_t* display) {
     int width = m1k_hal_get_display_width();
     graphics_draw_image(width - 8, 0, &RJ_ICON_0);
     graphics_draw_image(width - 18, 0, &BT_ICON_1);

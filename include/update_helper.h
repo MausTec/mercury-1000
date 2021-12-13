@@ -1,6 +1,8 @@
 #ifndef __UPDATEHELPER_H
 #define __UPDATEHELPER_H
 
+#ifdef ARDUINO
+
 // This is taken from the Edge-o-Matic, and eventually should be replaced with proper esp-idf framework methods.
 
 #include <Update.h>
@@ -46,5 +48,6 @@ namespace UpdateHelper {
   extern bool pendingLocalUpdate;
   extern bool pendingWebUpdate;
 }
+#endif
 
 #endif
