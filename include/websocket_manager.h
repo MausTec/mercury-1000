@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#define MAUS_LINK_REMOTE_HOST "link.maustec.net"
+#define MAUS_LINK_DEFAULT_PROTOCOL "wss"
+
 enum wm_remote_conn_status {
     WM_REMOTE_DISCONNECTED,
     WM_REMOTE_CONNECTING,

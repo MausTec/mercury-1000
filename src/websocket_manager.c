@@ -42,7 +42,13 @@ static void websocket_event_handler(void* handler_args, esp_event_base_t base, i
 
     switch (event_id) {
     case WEBSOCKET_EVENT_CONNECTED:
-        ESP_LOGI(TAG, "Websocket Remote connected.");
+        ESP_LOGI(TAG, "Websocket Remote connected, requesting key.");
+        cJSON *response = cJSON_CreateObject();
+        cJSON_AddNullToObject(response, "getDeviceKey");
+        char *res_text = cJSON_Print(response);
+        esp_websocket_client_send_text(client, res_text, strlen(res_text), 1000 / portMAX_DELAY);
+        cJSON_Delete(response);
+        cJSON_free(res_text);
         remote_status = WM_REMOTE_WAITING_FOR_KEY;
         break;
 
@@ -89,13 +95,14 @@ static void websocket_event_handler(void* handler_args, esp_event_base_t base, i
 
 void websocket_manager_connect_to_remote(const char* hostname, int port) {
     char uri[120] = "";
-    snprintf(uri, 128, "ws://%s:%d/device", hostname, port);
+    snprintf(uri, 128, "wss://%s/device", hostname);
 
     ESP_LOGI(TAG, "Connecting to remote: %s", uri);
     remote_status = WM_REMOTE_CONNECTING;
 
     const esp_websocket_client_config_t ws_cfg = {
         .uri = uri,
+        .headers = NULL,
     };
 
     remote_shutdown_timer = xTimerCreate(

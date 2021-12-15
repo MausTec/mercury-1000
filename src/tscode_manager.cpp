@@ -7,6 +7,7 @@
 #include <driver/i2c.h>
 #include "config.hpp"
 #include "wifi_manager.h"
+#include "ui.hpp"
 
 #include <cstring>
 
@@ -126,6 +127,10 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
     case TSCODE_HALT_IMMEDIATE:
         m1k_hal_hv_power_off();
         m1k_hal_set_milker_speed(0x00);
+        break;
+
+    case TSCODE_DISPLAY_MESSAGE:
+        ui_toast(cmd->str, 3000, true);
         break;
 
     // Set WiFi SSID
