@@ -130,7 +130,7 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
         break;
 
     case TSCODE_DISPLAY_MESSAGE:
-        ui_toast(cmd->str, 3000, true);
+        ui_toast(cmd->str, 3000, UI_TOAST_NOFLAG);
         break;
 
     // Set WiFi SSID

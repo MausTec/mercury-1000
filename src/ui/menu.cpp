@@ -23,7 +23,7 @@ void Menu::enter(Menu* previous, bool save_history) {
     this->render();
 }
 
-void Menu::rerender(void) {
+void Menu::reenter(void) {
     this->clear_items();
 
     if (this->config->enter_cb != nullptr) {

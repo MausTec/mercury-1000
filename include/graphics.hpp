@@ -18,6 +18,6 @@ typedef struct graphics_image graphics_image_t;
 void graphics_draw_image(u8g2_uint_t x, u8g2_uint_t y, graphics_image_t *image);
 void graphics_fill_pattern(u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w, u8g2_uint_t h, uint8_t pattern);
 void graphics_draw_modal(u8g2_uint_t border_px);
-void graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w, u8g2_uint_t h);
+size_t graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w, u8g2_uint_t h);
 
 #endif

@@ -38,9 +38,7 @@ void graphics_draw_modal(u8g2_uint_t border_px) {
     u8g2_DrawBox(display, left + border_px + 1, border_px + 1, width - (2 * (border_px + 1)), height - (2 * (border_px + 1)));
 }
 
-void graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w, u8g2_uint_t h) {
-    const int width = m1k_hal_get_display_width();
-    const int height = m1k_hal_get_display_height();
+size_t graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w, u8g2_uint_t h) {
     const int left = m1k_hal_get_display_left();
 
     u8g2_t* display = m1k_hal_get_display_ptr();
@@ -51,17 +49,29 @@ void graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint
     // Get Font / Line Measurements
     const int th = 1 + u8g2_GetAscent(display) - u8g2_GetDescent(display);
     const int max_lines = h / th;
+    
+    // Scrollbar Math
+    const int scroll_pad = 1;
+    const int scroll_w = 2;
+    const int scroll_x = (left + x + w) - scroll_w - scroll_pad;
+    int scroll_y = scroll_pad;
+    int scroll_h = h - (2 * scroll_pad);
 
     char line_buf[max_lines][40];
     size_t curr_line = 0;
     size_t text_idx = 0;
     size_t scroll_idx = 0;
 
+    for (int i = 0; i < max_lines; i++) {
+        line_buf[i][0] = '\0';
+    }
+
     while (text[text_idx] != '\0') {
         u8g2_uint_t line_w = 0;
         size_t line_idx = 0;
 
-        while (line_w < w) {
+        // Process characters until a line is full
+        while (line_w < (w - scroll_w - 2)) {
             if (text[text_idx] == '\0') {
                 break;
             }
@@ -75,28 +85,49 @@ void graphics_draw_scrolling_text(const char *text, size_t line_start, u8g2_uint
 
             if (line_w < w) {
                 // commit char add
-                line_buf[scroll_idx][line_idx++] = text[text_idx++];
+                if (curr_line < (line_start + max_lines)) {
+                    line_buf[scroll_idx][line_idx] = text[text_idx];
+                }
+                line_idx++;
+                text_idx++;
             }
         }
 
-        line_buf[scroll_idx][line_idx] = '\0';
-        curr_line++;
+        ESP_LOGD(TAG, "line_start=%d, scroll_idx=%d, max_lines=%d, curr_line=%d", line_start, scroll_idx, max_lines, curr_line);
 
-        if (curr_line <= line_start) {
+        if (curr_line >= (line_start + max_lines)) {
             continue;
         }
 
-        if (curr_line > max_lines) {
-            // we need to know how many more lines come
-            break;
-        }
-
+        curr_line++;
+        line_buf[scroll_idx][line_idx] = '\0';
+        ESP_LOGD(TAG, "line_buf[%d] = %s", scroll_idx, line_buf[scroll_idx]);
         scroll_idx = (scroll_idx + 1) % max_lines;
     }
 
+    ESP_LOGD(TAG, "--- Toast Math Complete ---");
+
+    // Do Scroll Math
+
+    // Render Text
     for (int i = 0; i < max_lines; i++) {
-        u8g2_DrawStr(display, left + x, y + (th * (i + 1)), line_buf[(i + scroll_idx) % max_lines]);
+        int idx = i;
+
+        if (curr_line >= max_lines) {
+            idx = (i + scroll_idx) % max_lines;
+        }
+
+        const char *line = line_buf[idx];
+        ESP_LOGI(TAG, "line[%d:%d] = \"%s\"", i, idx, line);
+        if (line[0] == '\0') continue;
+        u8g2_DrawStr(display, left + x, y + (th * (i + 1)), line);
     }
 
-    // TODO: Add a scrollbar and prevent scrolling past the end by I guess keeping a line buffer THEN drawing?
+    // Draw Scrollbar
+    u8g2_DrawBox(display, left + x + w - scroll_w - 1, y + scroll_y, scroll_w, scroll_h);
+
+    ESP_LOGD(TAG, "=== Toast Render Complete ===");
+
+    size_t new_line_start = curr_line - max_lines;
+    return new_line_start < line_start ? new_line_start : line_start;
 }

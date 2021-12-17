@@ -45,7 +45,6 @@ extern "C" void app_main() {
 
     wifi_manager_init();
     wifi_manager_connect_to_ap("Here Be Dragons", "RAWR!barkbark");
-    websocket_manager_connect_to_remote(MAUS_LINK_REMOTE_HOST, 443);
 
     ui_open_page(&Pages::Splash);
 

@@ -26,6 +26,7 @@ void ui_init(void) {
     M1K_HAL_ERRCHK(m1k_hal_register_encoder_change(ui_handle_encoder));
 
     ui_clear_toast(false);
+    // strlcpy(_toast, "This is a long line test toast,\nIt spans multiple lines and is generally quite long,\nCheck us out on Twitter: \ntwitter.com/maus_tec", UI_TOAST_MAX_LEN);
 }
 
 void ui_open_page(UI::Page* page) {
@@ -56,12 +57,29 @@ void ui_open_menu(UI::Menu* menu, bool save_history) {
     }
 }
 
-void ui_toast(const char* msg, unsigned long delay_ms, bool allow_clear) {
+void ui_toastf(const char* fmt, unsigned long delay_ms, ui_toast_flags_t flags, ...) {
+    va_list args;
+    va_start(args, flags);
+    vsnprintf(_toast, UI_TOAST_MAX_LEN, fmt, args);
+    va_end(args);
+
+    ESP_LOGI(TAG, "Toasted: \"%s\"", _toast);
+
+    unsigned long millis = esp_timer_get_time() / 1000UL;
+    _toast_expires_ms = delay_ms ? millis + delay_ms : 0;
+    _toast_allow_clear = !(flags & UI_TOAST_PERMANENT);
+    _toast_line_start = 0;
+    if (!(flags & UI_TOAST_NORENDER)) ui_rerender();
+}
+
+void ui_toast(const char* msg, unsigned long delay_ms, ui_toast_flags_t flags) {
     unsigned long millis = esp_timer_get_time() / 1000UL;
     strlcpy(_toast, msg, UI_TOAST_MAX_LEN);
+    ESP_LOGI(TAG, "Toasted: \"%s\"", _toast);
     _toast_expires_ms = delay_ms ? millis + delay_ms : 0;
-    _toast_allow_clear = allow_clear;
+    _toast_allow_clear = !(flags & UI_TOAST_PERMANENT);
     _toast_line_start = 0;
+    if (!(flags & UI_TOAST_NORENDER)) ui_rerender();
 }
 
 void ui_clear_toast(bool rerender) {
@@ -78,6 +96,7 @@ void ui_tick(void) {
 
     // Expire any stale toast:
     if (_toast_expires_ms > 0 && millis > _toast_expires_ms) {
+        ESP_LOGI(TAG, "Expiring toast: %ldms < %ldms", _toast_expires_ms, millis);
         ui_clear_toast(false);
     }
 
@@ -92,8 +111,10 @@ void ui_tick(void) {
 
 void ui_handle_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt) {
     if (_toast[0] != '\0') {
-        if (_toast_allow_clear) {
-            ui_clear_toast(true);
+        if (evt == M1K_HAL_BUTTON_EVT_PRESS) {
+            if (_toast_allow_clear) {
+                ui_clear_toast(true);
+            }
         }
 
         return;
@@ -112,6 +133,7 @@ void ui_handle_encoder(int difference) {
     if (_toast[0] != '\0') {
         _toast_line_start += difference;
         if (_toast_line_start < 0) _toast_line_start = 0;
+        ui_rerender();
         return;
     }
 
@@ -133,7 +155,8 @@ void ui_render_static(u8g2_t* display) {
         // draw toasts
         const int border = 3;
         graphics_draw_modal(border);
-        graphics_draw_scrolling_text(_toast, _toast_line_start, border + 2, border, width - border - 4, height - border - 1);
+        size_t max_line = graphics_draw_scrolling_text(_toast, _toast_line_start, border + 2, border, width - border - 4, height - border - 1);
+        _toast_line_start = max_line;
     } else {
         // no toast, draw icons
         graphics_draw_image(width - 8, 0, &RJ_ICON_0);
@@ -143,7 +166,7 @@ void ui_render_static(u8g2_t* display) {
 
 void ui_rerender(void) {
     if (current_menu != nullptr) {
-        return current_menu->rerender();
+        return current_menu->render();
     }
 
     current_page->render();

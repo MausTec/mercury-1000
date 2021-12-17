@@ -36,7 +36,7 @@ namespace UI {
 
         void enter(Menu* previous = nullptr, bool save_history = true);
         void render(void);
-        void rerender(void);
+        void reenter(void);
         void loop(void);
         void exit(void);
         void on_click(m1k_hal_button_t button, m1k_hal_button_evt_t evt);
