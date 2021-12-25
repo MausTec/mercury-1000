@@ -5,6 +5,7 @@
 #include "wifi_manager.h"
 #include "update_manager.h"
 #include "config.hpp"
+#include "version.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -128,7 +129,7 @@ static void on_update_install(Menu *p, void *ptr, int i) {
 }
 
 static void on_system_info(Menu *p, void *ptr, int i) {
-    ui_toastf("Mercury 1000\nFirmware: %s\nSerial: %s", 0, UI_TOAST_ANYKEY, "-", "-");
+    ui_toastf("Mercury 1000\nFirmware: %s\nSerial: %s", 0, UI_TOAST_ANYKEY, VERSION, "-");
 }
 
 static void on_enter(Menu *p) {
