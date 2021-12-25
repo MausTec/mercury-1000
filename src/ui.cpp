@@ -57,29 +57,48 @@ void ui_open_menu(UI::Menu* menu, bool save_history) {
     }
 }
 
-void ui_toastf(const char* fmt, unsigned long delay_ms, ui_toast_flags_t flags, ...) {
-    va_list args;
-    va_start(args, flags);
-    vsnprintf(_toast, UI_TOAST_MAX_LEN, fmt, args);
-    va_end(args);
-
-    ESP_LOGI(TAG, "Toasted: \"%s\"", _toast);
+static void _ui_toast_common(unsigned long delay_ms, int flags) {
+    if (flags & UI_TOAST_ANYKEY) {
+        strlcat(_toast, "\nPress any key to continue", UI_TOAST_MAX_LEN);
+    }
 
     unsigned long millis = esp_timer_get_time() / 1000UL;
     _toast_expires_ms = delay_ms ? millis + delay_ms : 0;
     _toast_allow_clear = !(flags & UI_TOAST_PERMANENT);
     _toast_line_start = 0;
     if (!(flags & UI_TOAST_NORENDER)) ui_rerender();
+    
+    ESP_LOGI(TAG, "Toasted: \"%s\"", _toast);
 }
 
-void ui_toast(const char* msg, unsigned long delay_ms, ui_toast_flags_t flags) {
+void ui_toastf(const char* fmt, unsigned long delay_ms, int flags, ...) {
+    va_list args;
+    va_start(args, flags);
+
+    if (flags & UI_TOAST_APPEND) {
+        char buf[UI_TOAST_MAX_LEN] = {0};
+        vsnprintf(_toast, UI_TOAST_MAX_LEN, fmt, args);
+        strlcat(_toast, "\n", UI_TOAST_MAX_LEN);
+        strlcat(_toast, buf, UI_TOAST_MAX_LEN);
+    } else {
+        vsnprintf(_toast, UI_TOAST_MAX_LEN, fmt, args);
+    }
+    va_end(args);
+
+    _ui_toast_common(delay_ms, flags);
+}
+
+void ui_toast(const char* msg, unsigned long delay_ms, int flags) {
     unsigned long millis = esp_timer_get_time() / 1000UL;
-    strlcpy(_toast, msg, UI_TOAST_MAX_LEN);
-    ESP_LOGI(TAG, "Toasted: \"%s\"", _toast);
-    _toast_expires_ms = delay_ms ? millis + delay_ms : 0;
-    _toast_allow_clear = !(flags & UI_TOAST_PERMANENT);
-    _toast_line_start = 0;
-    if (!(flags & UI_TOAST_NORENDER)) ui_rerender();
+
+    if (flags & UI_TOAST_APPEND) {
+        strlcat(_toast, "\n", UI_TOAST_MAX_LEN);
+        strlcat(_toast, msg, UI_TOAST_MAX_LEN);
+    } else {
+        strlcpy(_toast, msg, UI_TOAST_MAX_LEN);
+    }
+
+    _ui_toast_common(delay_ms, flags);
 }
 
 void ui_clear_toast(bool rerender) {

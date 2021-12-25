@@ -10,9 +10,13 @@
 
 #include "wifi_manager.h"
 #include "websocket_manager.h"
+#include "update_manager.h"
 
 TaskHandle_t PressureMgrTask;
 void pressure_mgr_task(void* param);
+
+TaskHandle_t SystemMainTask;
+void system_main_task(void *param);
 
 extern "C" void app_main() {
     m1k_hal_init();
@@ -23,17 +27,13 @@ extern "C" void app_main() {
 
     ui_init();
     tscode_manager_init();
+    wifi_manager_init();
 
-    xTaskCreatePinnedToCore(
-        pressure_mgr_task,
-        "PressureMgrTask",
-        4095,
-        NULL,
-        0,
-        &PressureMgrTask,
-        0
-    );
+    xTaskCreatePinnedToCore(pressure_mgr_task, "PressureMgrTask", 4095, NULL, 3, &PressureMgrTask, 1);
+    xTaskCreate(system_main_task, "SystemMainTask", 8192, NULL, 1, &SystemMainTask);
+}
 
+void system_main_task(void* param) {
     printf("Maus-Tec Electronics Presents:\n");
     printf("Mercury 1000\n");
     printf("Firmware version: %s\n", VERSION);
@@ -43,10 +43,15 @@ extern "C" void app_main() {
     config_serialize(&Config, config_str, 512);
     printf("Config Loaded:\n%s\n", config_str);
 
-    wifi_manager_init();
-    wifi_manager_connect_to_ap("Here Be Dragons", "RAWR!barkbark");
-
     ui_open_page(&Pages::Splash);
+
+    if (Config.wifi_on) {
+        esp_err_t err = wifi_manager_connect_to_ap(Config.wifi_ssid, Config.wifi_key);
+
+        if (err == ESP_OK && Config.auto_check_updates) {
+            update_manager_check_for_updates();
+        }
+    }
 
     printf("Startup sequence complete.\n");
 
@@ -54,7 +59,6 @@ extern "C" void app_main() {
         m1k_hal_tick();
         ui_tick();
         tscode_manager_tick();
-
         vTaskDelay(1);
     }
 }

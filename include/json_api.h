@@ -9,7 +9,7 @@ extern "C" {
 
 void json_api_process_obj(cJSON *root, cJSON *response);
 const char* json_api_process_str(const char *str);
-const char* json_api_process(const char* str, size_t len);
+char* json_api_process(const char* str, size_t len);
 void json_api_free_str(char* str);
 
 #ifdef __cplusplus

@@ -25,6 +25,8 @@ void config_to_json(cJSON* root, config_t* cfg) {
     cJSON_AddStringToObject(root, "bt_display_name", cfg->bt_display_name);
     cJSON_AddBoolToObject(root, "bt_on", cfg->bt_on);
     cJSON_AddBoolToObject(root, "force_bt_coex", cfg->force_bt_coex);
+
+    cJSON_AddBoolToObject(root, "auto_check_updates", cfg->auto_check_updates);
 }
 
 void json_to_config(cJSON* root, config_t* cfg) {
@@ -35,6 +37,8 @@ void json_to_config(cJSON* root, config_t* cfg) {
     get_str(root, "bt_display_name", cfg->bt_display_name, 64);
     get_bool(root, "bt_on", cfg->bt_on);
     get_bool(root, "force_bt_coex", cfg->force_bt_coex);
+
+    get_bool(root, "auto_check_updates", cfg->auto_check_updates);
 }
 
 //

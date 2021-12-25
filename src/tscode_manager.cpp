@@ -3,11 +3,14 @@
 #include "pressure_manager.hpp"
 #include "version.h"
 #include "m1k-hal.hpp"
-#include "update_helper.h"
+#include "update_manager.h"
 #include <driver/i2c.h>
 #include "config.hpp"
 #include "wifi_manager.h"
 #include "ui.hpp"
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #include <cstring>
 
@@ -179,7 +182,19 @@ tscode_command_response_t tscode_callback(tscode_command_t* cmd, char* response,
 
     // Update from Web
     case __S(173): {
-        // UpdateHelper::updateFromWeb();
+        esp_err_t err = update_manager_update_from_web();
+        if (err != ESP_OK) {
+            printf("update error: %s\n", esp_err_to_name(err));
+            return TSCODE_RESPONSE_FAULT;
+        } else {
+            printf("Updates complete.\nRestarting...");
+            vTaskDelay(3000 / portTICK_PERIOD_MS);
+            esp_restart();
+
+            for (;;) {
+                vTaskDelay(1000 / portTICK_PERIOD_MS);
+            }
+        }
         break;
     }
 

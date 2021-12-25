@@ -28,7 +28,7 @@ const char* json_api_process_str(const char* str) {
     return res_text;
 }
 
-const char* json_api_process(const char* str, size_t len) {
+char* json_api_process(const char* str, size_t len) {
     cJSON* root = cJSON_ParseWithLength(str, len);
     cJSON* response = cJSON_CreateObject();
     json_api_process_obj(root, response);

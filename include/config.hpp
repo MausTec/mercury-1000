@@ -20,6 +20,8 @@ struct config {
     char bt_display_name[64] = "";
     bool bt_on = false;
     bool force_bt_coex = false;
+
+    bool auto_check_updates = false;
 };
 
 typedef struct config config_t;

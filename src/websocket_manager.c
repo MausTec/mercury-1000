@@ -40,7 +40,7 @@ const char *websocket_manager_get_remote_device_key(void) {
 
 static void websocket_event_handler(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
     esp_websocket_event_data_t* data = (esp_websocket_event_data_t*) event_data;
-    esp_websocket_client_handle_t *client = (esp_websocket_client_handle_t*) handler_args;
+    esp_websocket_client_handle_t client = (esp_websocket_client_handle_t) handler_args;
 
     switch (event_id) {
     case WEBSOCKET_EVENT_CONNECTED: {
